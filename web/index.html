@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>Gomoku</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "mint": "#E0F7FA",
+                        "sky": "#E3F2FD",
+                        "kawaii-pink": "#FF80AB",
+                        "kawaii-yellow": "#FFD54F",
+                        "kawaii-blue": "#4FC3F7",
+                        "kawaii-green": "#81C784",
+                        "kawaii-purple": "#B19CD9",
+                        "kawaii-orange": "#FFD1DC",
+                        "pastel-yellow": "#FFF9E3",
+                        "blueberry": "#5D5FEF",
+                        "strawberry": "#FF4D4D",
+                    },
+                    fontFamily: {
+                        "display": ["Fredoka", "sans-serif"],
+                        "body": ["Quicksand", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "capsule": "100px",
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        :root {
+            --pastel-gradient: linear-gradient(135deg, #E0F7FA 0%, #E3F2FD 100%);
+            --dot-color: #fce4ec;
+        }
+        body {
+            font-family: "Quicksand", sans-serif;
+            background: var(--pastel-gradient);
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+        .bubbly-text {
+            color: #FF80AB;
+            -webkit-text-stroke: 2px white;
+            filter: drop-shadow(0 4px 0 rgba(0,0,0,0.1));
+            font-family: 'Fredoka', sans-serif;
+        }
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            color: white;
+            opacity: 0.6;
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .screen { display: none; }
+        .screen.active { display: flex; }
+
+        .gomoku-grid {
+            position: relative;
+        }
+        .stone-blueberry {
+            background: radial-gradient(circle at 35% 35%, #8b8dfa 0%, #5D5FEF 60%, #3a3b9a 100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        .stone-strawberry {
+            background: radial-gradient(circle at 35% 35%, #ff8585 0%, #FF4D4D 60%, #b32d2d 100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        .bouncy-btn {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bouncy-btn:active {
+            transform: scale(0.9);
+        }
+        .difficulty-card:checked + div {
+            border: 4px solid white;
+            box-shadow: 0 0 0 4px rgba(177, 156, 217, 0.3);
+            transform: scale(1.02);
+        }
+        .cell-hover {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .cell:hover .cell-hover {
+            opacity: 0.5;
+        }
+
+        /* Win animation */
+        @keyframes pulse-win {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .winning-stone {
+            animation: pulse-win 0.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-700 min-h-screen flex flex-col font-body">
+
+    <!-- HOME SCREEN -->
+    <div id="home-screen" class="screen active flex-col min-h-screen">
+        <div class="relative flex min-h-screen w-full flex-col overflow-hidden">
+            <!-- Sparkles -->
+            <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                <span class="material-symbols-outlined sparkle" style="top: 15%; left: 10%; font-size: 24px;">auto_awesome</span>
+                <span class="material-symbols-outlined sparkle" style="top: 40%; right: 15%; font-size: 18px;">star</span>
+                <span class="material-symbols-outlined sparkle" style="top: 70%; left: 20%; font-size: 20px;">stars</span>
+                <span class="material-symbols-outlined sparkle" style="top: 25%; right: 25%; font-size: 22px;">favorite</span>
+                <span class="material-symbols-outlined sparkle" style="bottom: 20%; right: 10%; font-size: 24px;">auto_awesome</span>
+            </div>
+
+            <header class="relative z-10 flex items-center justify-center p-6 pt-12">
+                <h1 class="text-6xl font-bold tracking-tight bubbly-text">Gomoku</h1>
+            </header>
+
+            <main class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 gap-8">
+                <!-- Cute mascots -->
+                <div class="relative w-64 h-64 flex items-center justify-center floating">
+                    <div class="absolute inset-0 bg-white/30 rounded-full blur-3xl"></div>
+                    <div class="absolute -translate-x-10 -translate-y-4 w-32 h-32 rounded-full bg-slate-800 shadow-xl flex items-center justify-center border-4 border-white overflow-hidden">
+                        <div class="flex flex-col items-center">
+                            <div class="flex gap-4 mb-1">
+                                <div class="w-3 h-3 bg-white rounded-full"></div>
+                                <div class="w-3 h-3 bg-white rounded-full"></div>
+                            </div>
+                            <div class="w-6 h-3 border-b-4 border-white rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="absolute translate-x-12 translate-y-8 w-32 h-32 rounded-full bg-white shadow-xl flex items-center justify-center border-4 border-pink-100">
+                        <div class="flex flex-col items-center">
+                            <div class="flex gap-4 mb-1">
+                                <div class="w-3 h-3 bg-slate-800 rounded-full"></div>
+                                <div class="w-3 h-3 bg-slate-800 rounded-full"></div>
+                            </div>
+                            <div class="w-6 h-3 border-b-4 border-slate-800 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="w-full max-w-sm flex flex-col gap-6">
+                    <button onclick="startTwoPlayer()" class="group relative flex items-center justify-between w-full py-4 px-8 bg-kawaii-pink hover:scale-105 active:scale-95 text-white rounded-capsule transition-all shadow-[0_6px_0_#D81B60]">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1">people</span>
+                            <span class="text-xl font-bold font-display">Play with Friend</span>
+                        </div>
+                        <span class="material-symbols-outlined text-3xl">keyboard_arrow_right</span>
+                    </button>
+                    <button onclick="showScreen('ai-select-screen')" class="group relative flex items-center justify-between w-full py-4 px-8 bg-kawaii-yellow hover:scale-105 active:scale-95 text-slate-800 rounded-capsule transition-all shadow-[0_6px_0_#FBC02D]">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1">smart_toy</span>
+                            <span class="text-xl font-bold font-display">Play vs AI</span>
+                        </div>
+                        <span class="material-symbols-outlined text-3xl">keyboard_arrow_right</span>
+                    </button>
+                </div>
+            </main>
+
+            <!-- Decorative blurs -->
+            <div class="absolute bottom-[-5%] left-[-5%] w-48 h-48 bg-kawaii-blue/20 rounded-full z-0 blur-2xl"></div>
+            <div class="absolute top-[-5%] right-[-5%] w-32 h-32 bg-kawaii-pink/20 rounded-full z-0 blur-2xl"></div>
+        </div>
+    </div>
+
+    <!-- AI DIFFICULTY SELECT SCREEN -->
+    <div id="ai-select-screen" class="screen flex-col min-h-screen">
+        <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto">
+            <header class="flex items-center p-6 pb-2 justify-between">
+                <button onclick="showScreen('home-screen')" class="text-slate-500 flex size-10 items-center justify-center rounded-full bg-white shadow-sm hover:bg-slate-50 transition-colors">
+                    <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <h1 class="text-slate-600 text-lg font-bold flex-1 text-center pr-10">AI Challenge</h1>
+            </header>
+
+            <main class="flex-1 overflow-y-auto px-6 py-4">
+                <div class="mb-8 text-center">
+                    <h2 class="text-pink-500 text-3xl font-bold mb-2">Pick a Friend!</h2>
+                    <p class="text-slate-500 text-sm font-medium">Choose who you want to play Gomoku with today.</p>
+                </div>
+
+                <form id="difficulty-form" class="flex flex-col gap-6">
+                    <!-- Easy -->
+                    <label class="relative cursor-pointer">
+                        <input checked class="difficulty-card peer hidden" name="difficulty" type="radio" value="easy"/>
+                        <div class="flex items-center gap-4 rounded-[2.5rem] border-4 border-transparent p-5 bg-[#AEC6CF]/30 shadow-lg shadow-[#AEC6CF]/20 transition-all duration-300 hover:bg-[#AEC6CF]/40">
+                            <div class="flex size-20 shrink-0 items-center justify-center rounded-full bg-white border-4 border-[#AEC6CF] shadow-inner text-4xl">
+                                🦥
+                            </div>
+                            <div class="flex flex-col flex-1">
+                                <p class="text-slate-700 text-xl font-bold">Sleepy Sloth</p>
+                                <p class="text-slate-600 text-sm font-medium leading-tight">Easy Peasy! Just learning the ropes.</p>
+                                <span class="mt-2 w-fit text-[10px] font-bold uppercase tracking-wider text-blue-500 bg-white/80 px-3 py-1 rounded-full">Beginner</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Medium -->
+                    <label class="relative cursor-pointer">
+                        <input class="difficulty-card peer hidden" name="difficulty" type="radio" value="medium"/>
+                        <div class="flex items-center gap-4 rounded-[2.5rem] border-4 border-transparent p-5 bg-[#FFD1DC]/30 shadow-lg shadow-[#FFD1DC]/20 transition-all duration-300 hover:bg-[#FFD1DC]/40">
+                            <div class="flex size-20 shrink-0 items-center justify-center rounded-full bg-white border-4 border-[#FFD1DC] shadow-inner text-4xl">
+                                🦊
+                            </div>
+                            <div class="flex flex-col flex-1">
+                                <p class="text-slate-700 text-xl font-bold">Curious Fox</p>
+                                <p class="text-slate-600 text-sm font-medium leading-tight">Getting sneaky! A playful challenge.</p>
+                                <span class="mt-2 w-fit text-[10px] font-bold uppercase tracking-wider text-orange-500 bg-white/80 px-3 py-1 rounded-full">Intermediate</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Hard -->
+                    <label class="relative cursor-pointer">
+                        <input class="difficulty-card peer hidden" name="difficulty" type="radio" value="hard"/>
+                        <div class="flex items-center gap-4 rounded-[2.5rem] border-4 border-transparent p-5 bg-[#B2E2BD]/30 shadow-lg shadow-[#B2E2BD]/20 transition-all duration-300 hover:bg-[#B2E2BD]/40">
+                            <div class="flex size-20 shrink-0 items-center justify-center rounded-full bg-white border-4 border-[#B2E2BD] shadow-inner text-4xl">
+                                🐉
+                            </div>
+                            <div class="flex flex-col flex-1">
+                                <p class="text-slate-700 text-xl font-bold">Wise Dragon</p>
+                                <p class="text-slate-600 text-sm font-medium leading-tight">A grandmaster! Be very careful.</p>
+                                <span class="mt-2 w-fit text-[10px] font-bold uppercase tracking-wider text-green-600 bg-white/80 px-3 py-1 rounded-full">Grandmaster</span>
+                            </div>
+                        </div>
+                    </label>
+                </form>
+
+                <div class="mt-8 p-4 rounded-3xl bg-white/60 border border-white flex items-center gap-3">
+                    <span class="material-symbols-outlined text-kawaii-purple">auto_awesome</span>
+                    <p class="text-xs text-slate-500 font-medium">Higher difficulty = smarter AI moves!</p>
+                </div>
+            </main>
+
+            <footer class="p-6 pb-8 bg-white/80 backdrop-blur-md border-t border-pink-100 rounded-t-[2rem]">
+                <button onclick="startAIGame()" class="w-full flex items-center justify-center gap-2 py-4 px-8 bg-kawaii-pink hover:scale-105 active:scale-95 text-white rounded-capsule transition-all shadow-[0_6px_0_#D81B60] font-bold text-xl">
+                    <span class="material-symbols-outlined">play_arrow</span>
+                    Start Game!
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen flex-col min-h-screen" style="background-color: #fdfcf0;">
+        <header class="p-4 pt-8 flex items-center justify-between gap-2">
+            <!-- Player 1 (Blueberry) -->
+            <div id="player1-info" class="flex-1 flex flex-col items-center gap-2">
+                <div class="relative">
+                    <div class="size-14 rounded-full border-4 border-blueberry bg-white flex items-center justify-center overflow-hidden ring-4 ring-blueberry/10 text-2xl">
+                        😊
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 id="player1-name" class="text-sm font-bold text-slate-700">Blueberry</h3>
+                    <p id="player1-status" class="text-xs text-blueberry font-bold">Your Turn</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center px-2">
+                <span class="text-slate-300 font-black italic text-lg">VS</span>
+            </div>
+
+            <!-- Player 2 (Strawberry) -->
+            <div id="player2-info" class="flex-1 flex flex-col items-center gap-2 opacity-60">
+                <div class="relative">
+                    <div class="size-14 rounded-full border-4 border-strawberry bg-white flex items-center justify-center overflow-hidden ring-4 ring-strawberry/10 text-2xl">
+                        🍓
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 id="player2-name" class="text-sm font-bold text-slate-700">Strawberry</h3>
+                    <p id="player2-status" class="text-xs text-strawberry font-bold">Waiting</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 flex items-center justify-center p-4">
+            <div id="board-container" class="relative aspect-square w-full max-w-[360px] bg-pastel-yellow rounded-[2rem] shadow-xl overflow-hidden border-[10px] border-white ring-8 ring-slate-100/50">
+                <div id="game-board" class="gomoku-grid absolute inset-3">
+                    <!-- Grid lines and stones will be rendered here -->
+                </div>
+            </div>
+        </main>
+
+        <footer class="p-4 pb-8 flex flex-col gap-4">
+            <div class="flex items-center justify-center gap-4">
+                <button onclick="restartGame()" class="bouncy-btn flex-1 max-w-[140px] bg-white text-strawberry h-14 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-red-100 border-b-4 border-slate-100">
+                    <span class="material-symbols-outlined">refresh</span>
+                    <span>Restart</span>
+                </button>
+                <button onclick="goHome()" class="bouncy-btn flex-1 max-w-[140px] bg-blueberry text-white h-14 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-blue-200 border-b-4 border-blue-800">
+                    <span class="material-symbols-outlined">home</span>
+                    <span>Menu</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- GAME OVER MODAL -->
+    <div id="game-over-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] p-8 mx-4 max-w-sm w-full text-center shadow-2xl">
+            <div id="winner-emoji" class="text-6xl mb-4">🎉</div>
+            <h2 id="winner-text" class="text-2xl font-bold text-slate-700 mb-2">Game Over!</h2>
+            <p id="winner-subtitle" class="text-slate-500 mb-6">What a great game!</p>
+            <div class="flex gap-4">
+                <button onclick="restartGame()" class="flex-1 py-3 px-6 bg-kawaii-pink text-white rounded-capsule font-bold hover:scale-105 active:scale-95 transition-all">
+                    Play Again
+                </button>
+                <button onclick="goHome()" class="flex-1 py-3 px-6 bg-slate-200 text-slate-700 rounded-capsule font-bold hover:scale-105 active:scale-95 transition-all">
+                    Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="ai.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

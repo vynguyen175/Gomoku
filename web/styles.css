@@ -1,0 +1,219 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+}
+
+.container {
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+}
+
+/* Screens */
+.screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Buttons */
+.btn {
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 200px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.black-btn {
+    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+}
+
+.white-btn {
+    background: linear-gradient(135deg, #e0e0e0 0%, #cfcfcf 100%);
+    color: #333;
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%);
+    margin-top: 10px;
+}
+
+/* Game Header */
+.game-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.status {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.turn-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.piece {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.piece.black {
+    background: radial-gradient(circle at 30% 30%, #555, #000);
+}
+
+.piece.white {
+    background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+}
+
+/* Board */
+.board-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#board {
+    background: #dcb35c;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    touch-action: none;
+}
+
+/* Game Controls */
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.game-controls .btn {
+    min-width: 120px;
+    padding: 12px 25px;
+    font-size: 1rem;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #2d3436 0%, #1e272e 100%);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h2 {
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+        min-width: 180px;
+    }
+
+    .status {
+        font-size: 1.1rem;
+    }
+
+    .piece {
+        width: 25px;
+        height: 25px;
+    }
+
+    .modal-content {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+}
+
+/* Large screens */
+@media (min-width: 768px) {
+    .container {
+        padding: 40px;
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 30px;
+    }
+}
